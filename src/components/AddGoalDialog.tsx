@@ -9,7 +9,7 @@ import { Plus } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 interface Goal {
-  id: string; // ✅ MongoDB uses string _id
+  id: number;
   title: string;
   description?: string;
   progress: number;
@@ -18,7 +18,7 @@ interface Goal {
 }
 
 interface AddGoalDialogProps {
-  onAddGoal: (goal: Goal) => void; // ✅ now expects full goal object
+  onAddGoal: (goal: Omit<Goal, 'id' | 'progress' | 'completed'>) => void;
   trigger?: React.ReactNode;
 }
 
@@ -27,52 +27,18 @@ export function AddGoalDialog({ onAddGoal, trigger }: AddGoalDialogProps) {
   const { toast } = useToast();
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
-  const onSubmit = async (data: any) => {
-    try {
-      const response = await fetch("http://localhost:5000/api/goals", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: data.title,
-          description: data.description,
-          milestones: parseInt(data.milestones) || 1,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        // ✅ Add full goal from backend response (including id, progress, completed)
-        onAddGoal({
-          id: result._id, // assuming backend sends `_id`
-          title: result.title,
-          description: result.description,
-          milestones: result.milestones,
-          progress: result.progress || 0,
-          completed: result.completed || 0,
-        });
-
-        reset();
-        setOpen(false);
-        toast({
-          title: "Goal Added",
-          description: "Your new goal has been saved and added to the list.",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: result.message || "Something went wrong.",
-        });
-      }
-    } catch (err) {
-      toast({
-        title: "Server Error",
-        description: "Could not save goal. Try again later.",
-      });
-      console.error(err);
-    }
+  const onSubmit = (data: any) => {
+    onAddGoal({
+      title: data.title,
+      description: data.description,
+      milestones: parseInt(data.milestones) || 1,
+    });
+    reset();
+    setOpen(false);
+    toast({
+      title: "Goal Added",
+      description: "Your new goal has been created successfully.",
+    });
   };
 
   return (
@@ -101,7 +67,7 @@ export function AddGoalDialog({ onAddGoal, trigger }: AddGoalDialogProps) {
               <p className="text-sm text-red-500">{errors.title.message as string}</p>
             )}
           </div>
-
+          
           <div className="space-y-2">
             <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
@@ -110,7 +76,7 @@ export function AddGoalDialog({ onAddGoal, trigger }: AddGoalDialogProps) {
               {...register("description")}
             />
           </div>
-
+          
           <div className="space-y-2">
             <Label htmlFor="milestones">Number of Milestones</Label>
             <Input
@@ -125,7 +91,7 @@ export function AddGoalDialog({ onAddGoal, trigger }: AddGoalDialogProps) {
               <p className="text-sm text-red-500">{errors.milestones.message as string}</p>
             )}
           </div>
-
+          
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel

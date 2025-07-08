@@ -1,5 +1,9 @@
 
+<<<<<<< HEAD
 import React, { useState,useEffect } from 'react';
+=======
+import React, { useState } from 'react';
+>>>>>>> db165b7d0a25b0b3dd2ed8513a3f23a9e9e7cbc2
 import { Navigation } from "@/components/Navigation";
 import { Dashboard } from "@/components/Dashboard";
 import { GoalsView } from "@/components/GoalsView";
@@ -54,6 +58,7 @@ const Index = () => {
     setGoals(prev => [...prev, newGoal]);
   };
 
+<<<<<<< HEAD
   useEffect(() => {
   const fetchJournals = async () => {
     const res = await fetch("http://localhost:5000/api/journals");
@@ -66,6 +71,8 @@ const Index = () => {
 }, []);
 
 
+=======
+>>>>>>> db165b7d0a25b0b3dd2ed8513a3f23a9e9e7cbc2
   const toggleMilestone = (goalId: number, milestoneIndex: number) => {
     setGoals(prev => prev.map(goal => {
       if (goal.id === goalId) {

@@ -44,6 +44,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
+<<<<<<< HEAD
     "cors": "^2.8.5",
     "date-fns": "^3.6.0",
     "dotenv": "^17.1.0",
@@ -52,6 +53,12 @@
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "mongoose": "^8.16.2",
+=======
+    "date-fns": "^3.6.0",
+    "embla-carousel-react": "^8.3.0",
+    "input-otp": "^1.2.4",
+    "lucide-react": "^0.462.0",
+>>>>>>> db165b7d0a25b0b3dd2ed8513a3f23a9e9e7cbc2
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
@@ -69,8 +76,12 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
+<<<<<<< HEAD
     "@types/express": "^5.0.3",
     "@types/node": "^22.16.0",
+=======
+    "@types/node": "^22.5.5",
+>>>>>>> db165b7d0a25b0b3dd2ed8513a3f23a9e9e7cbc2
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",
@@ -82,9 +93,13 @@
     "lovable-tagger": "^1.1.7",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11",
+<<<<<<< HEAD
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.8.3",
+=======
+    "typescript": "^5.5.3",
+>>>>>>> db165b7d0a25b0b3dd2ed8513a3f23a9e9e7cbc2
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"
   }
