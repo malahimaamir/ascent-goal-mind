@@ -4,24 +4,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Target, Brain, BookOpen, TrendingUp, Plus, CheckCircle, Circle, Smile, Meh, Frown } from 'lucide-react';
+import { Target, Brain, BookOpen, TrendingUp, Plus, CheckCircle, Circle, Smile, Meh, Frown, Edit } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AddGoalDialog } from "@/components/AddGoalDialog";
+import { AddJournalDialog } from "@/components/AddJournalDialog";
+import { MindMapView } from "@/components/MindMapView";
+import { useToast } from "@/hooks/use-toast";
+
+interface Goal {
+  id: number;
+  title: string;
+  description?: string;
+  progress: number;
+  milestones: number;
+  completed: number;
+}
+
+interface JournalEntry {
+  id: number;
+  date: string;
+  mood: string;
+  content: string;
+  preview: string;
+}
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isEditingMindMap, setIsEditingMindMap] = useState(false);
+  const { toast } = useToast();
 
-  // Mock data for demonstration
-  const goals = [
+  // State for goals and journal entries
+  const [goals, setGoals] = useState<Goal[]>([
     { id: 1, title: "Learn React Development", progress: 75, milestones: 4, completed: 3 },
     { id: 2, title: "Run 5K Marathon", progress: 60, milestones: 5, completed: 3 },
     { id: 3, title: "Read 24 Books This Year", progress: 45, milestones: 24, completed: 11 },
-  ];
+  ]);
 
-  const journalEntries = [
-    { date: "2024-07-08", mood: "happy", preview: "Great progress on my React project today..." },
-    { date: "2024-07-07", mood: "neutral", preview: "Feeling motivated to continue my fitness journey..." },
-    { date: "2024-07-06", mood: "happy", preview: "Finished another chapter of my book..." },
-  ];
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([
+    { id: 1, date: "2024-07-08", mood: "happy", content: "Great progress on my React project today. I learned about hooks and state management. Feeling accomplished!", preview: "Great progress on my React project today..." },
+    { id: 2, date: "2024-07-07", mood: "neutral", content: "Feeling motivated to continue my fitness journey. Did a 30-minute workout today.", preview: "Feeling motivated to continue my fitness journey..." },
+    { id: 3, date: "2024-07-06", mood: "happy", content: "Finished another chapter of my book. The story is getting really interesting!", preview: "Finished another chapter of my book..." },
+  ]);
 
   const weeklyData = [
     { day: 'Mon', progress: 65, mood: 4 },
@@ -32,6 +55,54 @@ const Index = () => {
     { day: 'Sat', progress: 77, mood: 4 },
     { day: 'Sun', progress: 82, mood: 5 },
   ];
+
+  // Functions for managing goals and journal entries
+  const addGoal = (goalData: Omit<Goal, 'id' | 'progress' | 'completed'>) => {
+    const newGoal: Goal = {
+      ...goalData,
+      id: Date.now(),
+      progress: 0,
+      completed: 0,
+    };
+    setGoals(prev => [...prev, newGoal]);
+  };
+
+  const toggleMilestone = (goalId: number, milestoneIndex: number) => {
+    setGoals(prev => prev.map(goal => {
+      if (goal.id === goalId) {
+        const isCompleting = milestoneIndex >= goal.completed;
+        const newCompleted = isCompleting ? milestoneIndex + 1 : milestoneIndex;
+        const newProgress = Math.round((newCompleted / goal.milestones) * 100);
+        
+        toast({
+          title: isCompleting ? "Milestone Completed!" : "Milestone Unchecked",
+          description: `${goal.title} - Milestone ${milestoneIndex + 1}`,
+        });
+        
+        return {
+          ...goal,
+          completed: newCompleted,
+          progress: newProgress,
+        };
+      }
+      return goal;
+    }));
+  };
+
+  const addJournalEntry = (entryData: Omit<JournalEntry, 'id' | 'date' | 'preview'>) => {
+    const today = new Date().toISOString().split('T')[0];
+    const preview = entryData.content.length > 50 
+      ? entryData.content.substring(0, 50) + "..." 
+      : entryData.content;
+    
+    const newEntry: JournalEntry = {
+      ...entryData,
+      id: Date.now(),
+      date: today,
+      preview,
+    };
+    setJournalEntries(prev => [newEntry, ...prev]);
+  };
 
   const getMoodIcon = (mood: string) => {
     switch (mood) {
@@ -153,10 +224,7 @@ const Index = () => {
             <CardTitle>Current Goals</CardTitle>
             <CardDescription>Track your progress on active goals</CardDescription>
           </div>
-          <Button className="bg-green-600 hover:bg-green-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Goal
-          </Button>
+          <AddGoalDialog onAddGoal={addGoal} />
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -167,7 +235,7 @@ const Index = () => {
                   <div className="flex items-center gap-4 mt-2">
                     <Progress value={goal.progress} className="flex-1 max-w-xs" />
                     <span className="text-sm text-gray-600">{goal.progress}%</span>
-                    <Badge variant="outline">
+                    <Badge variant="outline" className="cursor-pointer hover:bg-gray-100">
                       {goal.completed}/{goal.milestones} milestones
                     </Badge>
                   </div>
@@ -187,10 +255,15 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-gray-800">Goals & Milestones</h2>
           <p className="text-gray-600">Manage your long-term goals and track milestones</p>
         </div>
-        <Button className="bg-green-600 hover:bg-green-700">
-          <Plus className="h-4 w-4 mr-2" />
-          New Goal
-        </Button>
+        <AddGoalDialog 
+          onAddGoal={addGoal}
+          trigger={
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              New Goal
+            </Button>
+          }
+        />
       </div>
 
       <div className="grid gap-6">
@@ -219,7 +292,11 @@ const Index = () => {
                 <h4 className="font-medium text-gray-700">Milestones:</h4>
                 <div className="grid gap-2">
                   {Array.from({ length: goal.milestones }, (_, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm">
+                    <div 
+                      key={i} 
+                      className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
+                      onClick={() => toggleMilestone(goal.id, i)}
+                    >
                       {i < goal.completed ? (
                         <CheckCircle className="h-4 w-4 text-green-500" />
                       ) : (
@@ -246,24 +323,20 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-gray-800">Mind Map Visualizer</h2>
           <p className="text-gray-600">Visualize your goals and their connections</p>
         </div>
-        <Button variant="outline">
+        <Button 
+          variant="outline"
+          onClick={() => setIsEditingMindMap(!isEditingMindMap)}
+        >
           <Brain className="h-4 w-4 mr-2" />
-          Edit Map
+          {isEditingMindMap ? "Done Editing" : "Edit Map"}
         </Button>
       </div>
 
-      <Card className="h-96">
-        <CardContent className="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50">
-          <div className="text-center">
-            <Brain className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-800 mb-2">Mind Map Coming Soon</h3>
-            <p className="text-gray-600 mb-4">Interactive visualization of your goals and their relationships</p>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              Create Your First Map
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <MindMapView 
+        goals={goals}
+        isEditing={isEditingMindMap}
+        onToggleEdit={() => setIsEditingMindMap(!isEditingMindMap)}
+      />
     </div>
   );
 
@@ -274,10 +347,7 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-gray-800">Daily Journal</h2>
           <p className="text-gray-600">Reflect on your daily experiences and mood</p>
         </div>
-        <Button className="bg-purple-600 hover:bg-purple-700">
-          <Plus className="h-4 w-4 mr-2" />
-          New Entry
-        </Button>
+        <AddJournalDialog onAddEntry={addJournalEntry} />
       </div>
 
       <div className="grid gap-4">
@@ -293,7 +363,7 @@ const Index = () => {
                   <p className="text-gray-700">{entry.preview}</p>
                 </div>
                 <Button variant="ghost" size="sm">
-                  Edit
+                  <Edit className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
